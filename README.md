@@ -1,0 +1,2 @@
+# Schema TechArticle Plugin
+
