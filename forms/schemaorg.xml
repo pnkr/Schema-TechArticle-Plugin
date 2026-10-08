@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form>
+	<fields name="schema">
+		<fieldset
+			name="schema"
+			label="PLG_SYSTEM_SCHEMA_FIELD_SCHEMA_LABEL"
+		>
+			<field
+				name="TechArticle"
+				type="subform"
+				showon="schemaType:TechArticle"
+			>
+				<form>
+
+					<field
+						name="@type"
+						type="hidden"
+						default="TechArticle"
+					/>
+
+					<field
+						name="noteTechArticle"
+						type="note"
+						description="PLG_SCHEMAORG_TECHARTICLE_DESCRIPTION_LABEL"
+						class="alert alert-info w-100"
+					/>
+
+					<field
+						name="headline"
+						type="text"
+						label="PLG_SCHEMAORG_TECHARTICLE_FIELD_HEADLINE_LABEL"
+						description="PLG_SCHEMAORG_TECHARTICLE_FIELD_HEADLINE_DESC"
+						filter="string"
+						maxlength="110"
+					/>
+
+					<field
+						name="description"
+						type="textarea"
+						label="PLG_SCHEMAORG_TECHARTICLE_FIELD_DESCRIPTION_LABEL"
+						filter="string"
+						rows="3"
+					/>
+
+					<field
+						name="image"
+						type="media"
+						label="PLG_SCHEMAORG_TECHARTICLE_FIELD_IMAGE_LABEL"
+					/>
+
+					<field
+						name="author"
+						type="subform"
+						label="PLG_SCHEMAORG_TECHARTICLE_FIELD_AUTHOR_LABEL"
+						multiple="true"
+					>
+						<form>
+
+							<field
+								name="@type"
+								type="list"
+								label="PLG_SCHEMAORG_TECHARTICLE_FIELD_TYPE_LABEL"
+								default="Person"
+								>
+								<option value="Person">PLG_SCHEMAORG_TECHARTICLE_FIELD_PERSON_LABEL</option>
+								<option value="Organization">PLG_SCHEMAORG_TECHARTICLE_FIELD_ORGANIZATION_LABEL</option>
+							</field>
+
+							<field
+								name="name"
+								type="text"
+								label="PLG_SCHEMAORG_TECHARTICLE_FIELD_NAME_LABEL"
+								filter="string"
+							/>
+
+							<field
+								name="url"
+								type="url"
+								label="PLG_SCHEMAORG_TECHARTICLE_FIELD_URL_LABEL"
+								filter="url"
+								validate="url"
+							/>
+
+						</form>
+					</field>
+
+					<field
+						name="publisher"
+						type="subform"
+						label="PLG_SCHEMAORG_TECHARTICLE_FIELD_PUBLISHER_LABEL"
+					>
+						<form>
+
+							<field
+								name="@type"
+								type="hidden"
+								default="Organization"
+							/>
+
+							<field
+								name="name"
+								type="text"
+								label="PLG_SCHEMAORG_TECHARTICLE_FIELD_NAME_LABEL"
+								filter="string"
+							/>
+
+							<field
+								name="url"
+								type="url"
+								label="PLG_SCHEMAORG_TECHARTICLE_FIELD_URL_LABEL"
+								filter="url"
+								validate="url"
+							/>
+
+							<field
+								name="logo"
+								type="media"
+								label="PLG_SCHEMAORG_TECHARTICLE_FIELD_LOGO_LABEL"
+							/>
+
+						</form>
+					</field>
+
+					<field
+						name="datePublished"
+						type="calendar"
+						label="PLG_SCHEMAORG_TECHARTICLE_FIELD_DATE_PUBLISHED_LABEL"
+						translateformat="true"
+						showtime="true"
+						filter="user_utc"
+					/>
+
+					<field
+						name="dateModified"
+						type="calendar"
+						label="PLG_SCHEMAORG_TECHARTICLE_FIELD_DATE_MODIFIED_LABEL"
+						translateformat="true"
+						showtime="true"
+						filter="user_utc"
+					/>
+
+					<field
+						name="proficiencyLevel"
+						type="list"
+						label="PLG_SCHEMAORG_TECHARTICLE_FIELD_PROFICIENCY_LEVEL_LABEL"
+						description="PLG_SCHEMAORG_TECHARTICLE_FIELD_PROFICIENCY_LEVEL_DESC"
+						default=""
+						>
+						<option value="">JNONE</option>
+						<option value="Beginner">PLG_SCHEMAORG_TECHARTICLE_FIELD_BEGINNER_LABEL</option>
+						<option value="Expert">PLG_SCHEMAORG_TECHARTICLE_FIELD_EXPERT_LABEL</option>
+					</field>
+
+					<field
+						name="dependencies"
+						type="text"
+						label="PLG_SCHEMAORG_TECHARTICLE_FIELD_DEPENDENCIES_LABEL"
+						description="PLG_SCHEMAORG_TECHARTICLE_FIELD_DEPENDENCIES_DESC"
+						filter="string"
+					/>
+
+					<field
+						name="version"
+						type="text"
+						label="PLG_SCHEMAORG_TECHARTICLE_FIELD_VERSION_LABEL"
+						description="PLG_SCHEMAORG_TECHARTICLE_FIELD_VERSION_DESC"
+						filter="string"
+					/>
+
+					<field
+						name="articleSection"
+						type="text"
+						label="PLG_SCHEMAORG_TECHARTICLE_FIELD_ARTICLE_SECTION_LABEL"
+						filter="string"
+					/>
+
+					<field
+						name="keywords"
+						type="text"
+						label="PLG_SCHEMAORG_TECHARTICLE_FIELD_KEYWORDS_LABEL"
+						description="PLG_SCHEMAORG_TECHARTICLE_FIELD_KEYWORDS_DESC"
+						filter="string"
+					/>
+
+					<field
+						name="inLanguage"
+						type="text"
+						label="PLG_SCHEMAORG_TECHARTICLE_FIELD_IN_LANGUAGE_LABEL"
+						description="PLG_SCHEMAORG_TECHARTICLE_FIELD_IN_LANGUAGE_DESC"
+						filter="string"
+					/>
+
+					<field
+						name="audience"
+						type="subform"
+						label="PLG_SCHEMAORG_TECHARTICLE_FIELD_AUDIENCE_LABEL"
+					>
+						<form>
+							<field
+								name="@type"
+								type="hidden"
+								default="Audience"
+							/>
+							<field
+								name="audienceType"
+								type="text"
+								label="PLG_SCHEMAORG_TECHARTICLE_FIELD_AUDIENCE_TYPE_LABEL"
+								description="PLG_SCHEMAORG_TECHARTICLE_FIELD_AUDIENCE_TYPE_DESC"
+								filter="string"
+							/>
+						</form>
+					</field>
+
+					<field
+						name="timeRequired"
+						type="number"
+						label="PLG_SCHEMAORG_TECHARTICLE_FIELD_TIME_REQUIRED_LABEL"
+						description="PLG_SCHEMAORG_TECHARTICLE_FIELD_TIME_REQUIRED_DESC"
+						filter="integer"
+						min="0"
+						step="1"
+					/>
+
+					<field
+						name="wordCount"
+						type="number"
+						label="PLG_SCHEMAORG_TECHARTICLE_FIELD_WORD_COUNT_LABEL"
+						filter="integer"
+						min="0"
+						step="1"
+					/>
+
+					<field
+						name="isAccessibleForFree"
+						type="list"
+						label="PLG_SCHEMAORG_TECHARTICLE_FIELD_IS_ACCESSIBLE_FOR_FREE_LABEL"
+						default=""
+						>
+						<option value="">JNONE</option>
+						<option value="1">JYES</option>
+						<option value="0">JNO</option>
+					</field>
+
+					<field
+						name="license"
+						type="url"
+						label="PLG_SCHEMAORG_TECHARTICLE_FIELD_LICENSE_LABEL"
+						filter="url"
+						validate="url"
+					/>
+
+					<field
+						name="url"
+						type="url"
+						label="PLG_SCHEMAORG_TECHARTICLE_FIELD_URL_LABEL"
+						filter="url"
+						validate="url"
+					/>
+
+					<field
+						name="genericField"
+						type="subform"
+						label="PLG_SCHEMAORG_TECHARTICLE_FIELD_GENERIC_FIELD_LABEL"
+						multiple="true"
+					>
+						<form>
+							<field
+								name="genericTitle"
+								type="text"
+								label="PLG_SCHEMAORG_TECHARTICLE_FIELD_GENERIC_TITLE_LABEL"
+								filter="cmd"
+								pattern="[A-Za-z][A-Za-z0-9_]*"
+							/>
+							<field
+								name="genericValue"
+								type="text"
+								label="PLG_SCHEMAORG_TECHARTICLE_FIELD_GENERIC_VALUE_LABEL"
+								filter="string"
+							/>
+						</form>
+
+					</field>
+
+				</form>
+			</field>
+		</fieldset>
+	</fields>
+</form>

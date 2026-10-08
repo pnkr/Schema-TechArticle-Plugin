@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<updates>
+	<update>
+		<name>TechArticle Schema.org Plugin</name>
+		<description>Provides Schema.org TechArticle structured data fields for Joomla Articles</description>
+		<element>techarticle</element>
+		<type>plugin</type>
+		<folder>schemaorg</folder>
+		<client>site</client>
+		<version>1.0.0</version>
+		<infourl title="TechArticle Schema.org Plugin">https://github.com/pnkr/plg_schemaorg_techarticle</infourl>
+		<downloads>
+			<downloadurl type="full" format="zip">https://github.com/pnkr/plg_schemaorg_techarticle/releases/download/v1.0.0/plg_schemaorg_techarticle-1.0.0.zip</downloadurl>
+		</downloads>
+		<tags>
+			<tag>stable</tag>
+		</tags>
+		<maintainer>Panagiotis Kiriakopoulos</maintainer>
+		<maintainerurl>https://github.com/pnkr</maintainerurl>
+		<targetplatform name="joomla" version="6\.[0-9]+"/>
+		<php_minimum>8.3.0</php_minimum>
+	</update>
+</updates>

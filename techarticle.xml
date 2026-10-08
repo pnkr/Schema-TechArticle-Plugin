@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<extension type="plugin" group="schemaorg" method="upgrade">
+	<name>plg_schemaorg_techarticle</name>
+	<author>Panagiotis Kiriakopoulos</author>
+	<creationDate>2026-10</creationDate>
+	<copyright>(C) 2026 Panagiotis Kiriakopoulos</copyright>
+	<license>GNU General Public License version 2 or later; see LICENSE</license>
+	<authorEmail>kiriakopoulos.p@gmail.com</authorEmail>
+	<authorUrl>https://github.com/pnkr</authorUrl>
+	<version>1.0.0</version>
+	<description>PLG_SCHEMAORG_TECHARTICLE_XML_DESCRIPTION</description>
+	<namespace path="src">Pnkr\Plugin\Schemaorg\TechArticle</namespace>
+	<files>
+		<folder plugin="techarticle">services</folder>
+		<folder>src</folder>
+		<folder>forms</folder>
+		<folder>language</folder>
+	</files>
+	<config>
+		<fields name="params">
+			<fieldset name="basic">
+				<field
+					name="allowedlist"
+					type="SchemaorgComponentSections"
+					label="JSCHEMAORG_EXTENSION_ALLOWED_LABEL"
+					description="JSCHEMAORG_EXTENSION_ALLOWED_DESCRIPTION"
+					multiple="multiple"
+					layout="joomla.form.field.list-fancy-select"
+				/>
+				<field
+					name="forbiddenlist"
+					type="SchemaorgComponentSections"
+					label="JSCHEMAORG_EXTENSION_FORBIDDEN_LABEL"
+					description="JSCHEMAORG_EXTENSION_FORBIDDEN_DESCRIPTION"
+					multiple="multiple"
+					layout="joomla.form.field.list-fancy-select"
+				/>
+			</fieldset>
+		</fields>
+	</config>
+	<updateservers>
+		<server type="extension" priority="1" name="TechArticle Schema.org Plugin Updates">
+			https://raw.githubusercontent.com/pnkr/plg_schemaorg_techarticle/main/updates.xml
+		</server>
+	</updateservers>
+</extension>
