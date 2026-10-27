@@ -7,7 +7,7 @@
 	<license>GNU General Public License version 2 or later; see LICENSE</license>
 	<authorEmail>kiriakopoulos.p@gmail.com</authorEmail>
 	<authorUrl>https://github.com/pnkr</authorUrl>
-	<version>1.0.0</version>
+	<version>1.1.0</version>
 	<description>PLG_SCHEMAORG_TECHARTICLE_XML_DESCRIPTION</description>
 	<namespace path="src">Pnkr\Plugin\Schemaorg\TechArticle</namespace>
 	<files>
@@ -35,12 +35,56 @@
 					multiple="multiple"
 					layout="joomla.form.field.list-fancy-select"
 				/>
+				<field
+					name="autofill"
+					type="radio"
+					label="PLG_SCHEMAORG_TECHARTICLE_PARAM_AUTOFILL_LABEL"
+					description="PLG_SCHEMAORG_TECHARTICLE_PARAM_AUTOFILL_DESC"
+					layout="joomla.form.field.radio.switcher"
+					default="1"
+					filter="integer"
+					>
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>
+				<field
+					name="publisher"
+					type="list"
+					label="PLG_SCHEMAORG_TECHARTICLE_PARAM_PUBLISHER_LABEL"
+					description="PLG_SCHEMAORG_TECHARTICLE_PARAM_PUBLISHER_DESC"
+					default="site"
+					>
+					<option value="site">PLG_SCHEMAORG_TECHARTICLE_PARAM_PUBLISHER_SITE</option>
+					<option value="custom">PLG_SCHEMAORG_TECHARTICLE_PARAM_PUBLISHER_CUSTOM</option>
+					<option value="none">JNONE</option>
+				</field>
+				<field
+					name="publisher_name"
+					type="text"
+					label="PLG_SCHEMAORG_TECHARTICLE_FIELD_NAME_LABEL"
+					filter="string"
+					showon="publisher:custom"
+				/>
+				<field
+					name="publisher_url"
+					type="url"
+					label="PLG_SCHEMAORG_TECHARTICLE_FIELD_URL_LABEL"
+					filter="url"
+					validate="url"
+					showon="publisher:custom"
+				/>
+				<field
+					name="publisher_logo"
+					type="media"
+					label="PLG_SCHEMAORG_TECHARTICLE_FIELD_LOGO_LABEL"
+					showon="publisher:custom"
+				/>
 			</fieldset>
 		</fields>
 	</config>
 	<updateservers>
 		<server type="extension" priority="1" name="TechArticle Schema.org Plugin Updates">
-			https://raw.githubusercontent.com/pnkr/plg_schemaorg_techarticle/main/updates.xml
+			https://raw.githubusercontent.com/pnkr/Schema-TechArticle-Plugin/main/updates.xml
 		</server>
 	</updateservers>
 </extension>

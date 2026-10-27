@@ -14,12 +14,18 @@ declare(strict_types=1);
 namespace Pnkr\Plugin\Schemaorg\TechArticle\Extension;
 
 use Joomla\CMS\Event\Plugin\System\Schemaorg\BeforeCompileHeadEvent;
+use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Plugin\CMSPlugin;
+use Joomla\CMS\Router\Route;
 use Joomla\CMS\Schemaorg\SchemaorgPluginTrait;
 use Joomla\CMS\Schemaorg\SchemaorgPrepareDateTrait;
 use Joomla\CMS\Schemaorg\SchemaorgPrepareImageTrait;
+use Joomla\Component\Content\Site\Helper\RouteHelper;
+use Joomla\Database\DatabaseAwareTrait;
+use Joomla\Database\ParameterType;
 use Joomla\Event\Priority;
 use Joomla\Event\SubscriberInterface;
+use Joomla\Registry\Registry;
 
 // phpcs:disable PSR1.Files.SideEffects
 \defined('_JEXEC') or die;
@@ -32,6 +38,7 @@ use Joomla\Event\SubscriberInterface;
  */
 final class TechArticle extends CMSPlugin implements SubscriberInterface
 {
+    use DatabaseAwareTrait;
     use SchemaorgPluginTrait;
     use SchemaorgPrepareDateTrait;
     use SchemaorgPrepareImageTrait;
@@ -51,6 +58,30 @@ final class TechArticle extends CMSPlugin implements SubscriberInterface
      * @since  1.0.0
      */
     private const PROFICIENCY_LEVELS = ['Beginner', 'Expert'];
+
+    /**
+     * Maximum headline length recommended by Google
+     *
+     * @var    integer
+     * @since  1.1.0
+     */
+    private const HEADLINE_LENGTH = 110;
+
+    /**
+     * Length of the description generated from the article text
+     *
+     * @var    integer
+     * @since  1.1.0
+     */
+    private const DESCRIPTION_LENGTH = 160;
+
+    /**
+     * The article shown on the current page, false if there is none
+     *
+     * @var    object|false|null
+     * @since  1.1.0
+     */
+    private $article = null;
 
     /**
      * Load the language file on instantiation.
@@ -104,7 +135,7 @@ final class TechArticle extends CMSPlugin implements SubscriberInterface
                 continue;
             }
 
-            $entry = $this->prepareTechArticle($entry);
+            $entry = $this->prepareTechArticle($entry, $graph);
         }
 
         unset($entry);
@@ -116,13 +147,18 @@ final class TechArticle extends CMSPlugin implements SubscriberInterface
      * Normalize a single TechArticle entry into valid Schema.org output
      *
      * @param   array  $entry  The TechArticle entry
+     * @param   array  $graph  The whole schema graph
      *
      * @return  array
      *
      * @since   1.0.0
      */
-    private function prepareTechArticle(array $entry): array
+    private function prepareTechArticle(array $entry, array $graph): array
     {
+        if ($this->params->get('autofill', 1)) {
+            $entry = $this->fillFromArticle($entry);
+        }
+
         // Never let generic fields override JSON-LD keywords such as @id, @type or @context
         if (isset($entry['genericField'])) {
             $entry['genericField'] = array_filter(
@@ -181,6 +217,14 @@ final class TechArticle extends CMSPlugin implements SubscriberInterface
             }
         }
 
+        if (!isset($entry['publisher'])) {
+            $publisher = $this->getDefaultPublisher($graph);
+
+            if ($publisher) {
+                $entry['publisher'] = $publisher;
+            }
+        }
+
         if (isset($entry['proficiencyLevel']) && !\in_array($entry['proficiencyLevel'], self::PROFICIENCY_LEVELS, true)) {
             unset($entry['proficiencyLevel']);
         }
@@ -218,6 +262,200 @@ final class TechArticle extends CMSPlugin implements SubscriberInterface
         }
 
         return $entry;
+    }
+
+    /**
+     * Fill the fields the editor left empty with data from the article
+     *
+     * @param   array  $entry  The TechArticle entry
+     *
+     * @return  array
+     *
+     * @since   1.1.0
+     */
+    private function fillFromArticle(array $entry): array
+    {
+        $article = $this->getArticle();
+
+        if (!$article) {
+            return $entry;
+        }
+
+        $text = trim(strip_tags((string) $article->introtext . ' ' . (string) $article->fulltext));
+        $text = html_entity_decode(preg_replace('/\s+/u', ' ', $text), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        $images = new Registry($article->images);
+
+        $language = $article->language === '*' || $article->language === ''
+            ? $this->getApplication()->getLanguage()->getTag()
+            : $article->language;
+
+        $url = Route::link(
+            'site',
+            RouteHelper::getArticleRoute($article->id . ':' . $article->alias, $article->catid, $article->language),
+            true,
+            Route::TLS_IGNORE,
+            true
+        );
+
+        $defaults = [
+            'headline'       => HTMLHelper::_('string.truncate', (string) $article->title, self::HEADLINE_LENGTH, true, false),
+            'description'    => trim((string) $article->metadesc) ?: HTMLHelper::_('string.truncate', $text, self::DESCRIPTION_LENGTH, true, false),
+            'image'          => $images->get('image_fulltext') ?: $images->get('image_intro'),
+            'datePublished'  => $article->publish_up ?: $article->created,
+            'dateModified'   => $article->modified ?: ($article->publish_up ?: $article->created),
+            'articleSection' => $article->category_title,
+            'keywords'       => trim((string) $article->metakey),
+            'inLanguage'     => $language,
+            'wordCount'      => $text === '' ? 0 : preg_match_all('/[\p{L}\p{N}]+/u', $text),
+            'url'            => $url,
+        ];
+
+        foreach ($defaults as $key => $value) {
+            if ($this->isBlank($entry[$key] ?? null) && !$this->isBlank($value)) {
+                $entry[$key] = $value;
+            }
+        }
+
+        if ($this->isBlank($entry['mainEntityOfPage'] ?? null) && !$this->isBlank($entry['url'] ?? null)) {
+            $entry['mainEntityOfPage'] = $entry['url'];
+        }
+
+        $hasAuthor = false;
+
+        foreach ($this->toList($entry['author'] ?? []) as $author) {
+            $hasAuthor = $hasAuthor || $this->hasValues($author);
+        }
+
+        $authorName = trim((string) $article->created_by_alias) ?: trim((string) $article->author_name);
+
+        if (!$hasAuthor && $authorName !== '') {
+            $entry['author'] = [['@type' => 'Person', 'name' => $authorName]];
+        }
+
+        return $entry;
+    }
+
+    /**
+     * Load the article shown on the current page
+     *
+     * @return  object|null
+     *
+     * @since   1.1.0
+     */
+    private function getArticle(): ?object
+    {
+        if ($this->article !== null) {
+            return $this->article ?: null;
+        }
+
+        $this->article = false;
+
+        $input = $this->getApplication()->getInput();
+
+        if ($input->getCmd('option') !== 'com_content' || $input->getCmd('view') !== 'article') {
+            return null;
+        }
+
+        $id = $input->getInt('id');
+
+        if ($id <= 0) {
+            return null;
+        }
+
+        $db    = $this->getDatabase();
+        $query = $db->getQuery(true)
+            ->select(
+                $db->quoteName(
+                    [
+                        'a.id', 'a.alias', 'a.catid', 'a.title', 'a.introtext', 'a.fulltext', 'a.images',
+                        'a.metadesc', 'a.metakey', 'a.language', 'a.created', 'a.modified', 'a.publish_up',
+                        'a.created_by_alias', 'c.title', 'u.name',
+                    ],
+                    [
+                        'id', 'alias', 'catid', 'title', 'introtext', 'fulltext', 'images',
+                        'metadesc', 'metakey', 'language', 'created', 'modified', 'publish_up',
+                        'created_by_alias', 'category_title', 'author_name',
+                    ]
+                )
+            )
+            ->from($db->quoteName('#__content', 'a'))
+            ->join('LEFT', $db->quoteName('#__categories', 'c'), $db->quoteName('c.id') . ' = ' . $db->quoteName('a.catid'))
+            ->join('LEFT', $db->quoteName('#__users', 'u'), $db->quoteName('u.id') . ' = ' . $db->quoteName('a.created_by'))
+            ->where($db->quoteName('a.id') . ' = :id')
+            ->bind(':id', $id, ParameterType::INTEGER);
+
+        $this->article = $db->setQuery($query)->loadObject() ?: false;
+
+        return $this->article ?: null;
+    }
+
+    /**
+     * Build the publisher used when the article does not set one
+     *
+     * @param   array  $graph  The whole schema graph
+     *
+     * @return  array|null
+     *
+     * @since   1.1.0
+     */
+    private function getDefaultPublisher(array $graph): ?array
+    {
+        switch ($this->params->get('publisher', 'site')) {
+            case 'site':
+                // Reference the site's Organization/Person from the System - Schema.org plugin
+                foreach ($graph as $node) {
+                    if (\is_array($node) && ($node['@type'] ?? '') === 'WebSite' && !empty($node['publisher']['@id'])) {
+                        return ['@id' => $node['publisher']['@id']];
+                    }
+                }
+
+                foreach ($graph as $node) {
+                    if (\is_array($node) && !empty($node['@id']) && \in_array($node['@type'] ?? '', self::AUTHOR_TYPES, true)) {
+                        return ['@id' => $node['@id']];
+                    }
+                }
+
+                return null;
+
+            case 'custom':
+                $name = trim((string) $this->params->get('publisher_name', ''));
+
+                if ($name === '') {
+                    return null;
+                }
+
+                $publisher = ['@type' => 'Organization', 'name' => $name];
+                $url       = trim((string) $this->params->get('publisher_url', ''));
+                $logo      = $this->params->get('publisher_logo', '');
+
+                if ($url !== '') {
+                    $publisher['url'] = $url;
+                }
+
+                if (!empty($logo)) {
+                    $publisher['logo'] = ['@type' => 'ImageObject', 'url' => $this->prepareImage($logo)];
+                }
+
+                return $publisher;
+
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * Check whether a form value is empty
+     *
+     * @param   mixed  $value  The value to check
+     *
+     * @return  boolean
+     *
+     * @since   1.1.0
+     */
+    private function isBlank($value): bool
+    {
+        return $value === null || $value === '' || $value === [] || $value === 0 || $value === '0';
     }
 
     /**

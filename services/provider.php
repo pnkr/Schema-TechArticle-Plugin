@@ -16,6 +16,7 @@ declare(strict_types=1);
 use Joomla\CMS\Extension\PluginInterface;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Plugin\PluginHelper;
+use Joomla\Database\DatabaseInterface;
 use Joomla\DI\Container;
 use Joomla\DI\ServiceProviderInterface;
 use Pnkr\Plugin\Schemaorg\TechArticle\Extension\TechArticle;
@@ -39,6 +40,7 @@ return new class () implements ServiceProviderInterface {
                     (array) PluginHelper::getPlugin('schemaorg', 'techarticle')
                 );
                 $plugin->setApplication(Factory::getApplication());
+                $plugin->setDatabase($container->get(DatabaseInterface::class));
 
                 return $plugin;
             }
