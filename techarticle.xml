@@ -7,9 +7,11 @@
 	<license>GNU General Public License version 2 or later; see LICENSE</license>
 	<authorEmail>kiriakopoulos.p@gmail.com</authorEmail>
 	<authorUrl>https://github.com/pnkr</authorUrl>
-	<version>1.1.0</version>
+	<version>1.2.0</version>
 	<description>PLG_SCHEMAORG_TECHARTICLE_XML_DESCRIPTION</description>
 	<namespace path="src">Pnkr\Plugin\Schemaorg\TechArticle</namespace>
+	<scriptfile>script.php</scriptfile>
+	<changelogurl>https://www.joomlaboratory.com/downloads/softwaredistributor/changelog_6.xml</changelogurl>
 	<files>
 		<folder plugin="techarticle">services</folder>
 		<folder>src</folder>
@@ -84,7 +86,7 @@
 	</config>
 	<updateservers>
 		<server type="extension" priority="1" name="TechArticle Schema.org Plugin Updates">
-			https://raw.githubusercontent.com/pnkr/Schema-TechArticle-Plugin/main/updates.xml
+			https://www.joomlaboratory.com/downloads/softwaredistributor/update_6.xml
 		</server>
 	</updateservers>
 </extension>

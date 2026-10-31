@@ -81,7 +81,7 @@ final class TechArticle extends CMSPlugin implements SubscriberInterface
      * @var    object|false|null
      * @since  1.1.0
      */
-    private $article = null;
+    private object|false|null $article = null;
 
     /**
      * Load the language file on instantiation.
@@ -126,7 +126,8 @@ final class TechArticle extends CMSPlugin implements SubscriberInterface
      */
     public function onSchemaBeforeCompileHead(BeforeCompileHeadEvent $event): void
     {
-        $schema = $event->getSchema();
+        $schema  = $event->getSchema();
+        $context = $event->getContext();
 
         $graph = $schema->get('@graph') ?? [];
 
@@ -135,7 +136,7 @@ final class TechArticle extends CMSPlugin implements SubscriberInterface
                 continue;
             }
 
-            $entry = $this->prepareTechArticle($entry, $graph);
+            $entry = $this->prepareTechArticle($entry, $graph, $context);
         }
 
         unset($entry);
@@ -146,17 +147,18 @@ final class TechArticle extends CMSPlugin implements SubscriberInterface
     /**
      * Normalize a single TechArticle entry into valid Schema.org output
      *
-     * @param   array  $entry  The TechArticle entry
-     * @param   array  $graph  The whole schema graph
+     * @param   array   $entry    The TechArticle entry
+     * @param   array   $graph    The whole schema graph
+     * @param   string  $context  The event context, e.g. com_content.article.42
      *
      * @return  array
      *
      * @since   1.0.0
      */
-    private function prepareTechArticle(array $entry, array $graph): array
+    private function prepareTechArticle(array $entry, array $graph, string $context): array
     {
         if ($this->params->get('autofill', 1)) {
-            $entry = $this->fillFromArticle($entry);
+            $entry = $this->fillFromArticle($entry, $context);
         }
 
         // Never let generic fields override JSON-LD keywords such as @id, @type or @context
@@ -267,22 +269,29 @@ final class TechArticle extends CMSPlugin implements SubscriberInterface
     /**
      * Fill the fields the editor left empty with data from the article
      *
-     * @param   array  $entry  The TechArticle entry
+     * @param   array   $entry    The TechArticle entry
+     * @param   string  $context  The event context, e.g. com_content.article.42
      *
      * @return  array
      *
      * @since   1.1.0
      */
-    private function fillFromArticle(array $entry): array
+    private function fillFromArticle(array $entry, string $context): array
     {
-        $article = $this->getArticle();
+        $article = $this->getArticle($context);
 
         if (!$article) {
             return $entry;
         }
 
-        $text = trim(strip_tags((string) $article->introtext . ' ' . (string) $article->fulltext));
-        $text = html_entity_decode(preg_replace('/\s+/u', ' ', $text), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        // Decode first so &nbsp; and friends are collapsed with the rest of the whitespace.
+        // preg_replace() returns null on invalid UTF-8; fall back to a byte-safe pattern.
+        $text = html_entity_decode(
+            strip_tags((string) $article->introtext . ' ' . (string) $article->fulltext),
+            ENT_QUOTES | ENT_HTML5,
+            'UTF-8'
+        );
+        $text = trim(preg_replace('/\s+/u', ' ', $text) ?? preg_replace('/\s+/', ' ', $text) ?? $text);
 
         $images = new Registry($article->images);
 
@@ -337,13 +346,15 @@ final class TechArticle extends CMSPlugin implements SubscriberInterface
     }
 
     /**
-     * Load the article shown on the current page
+     * Load the published article the schema was rendered for
+     *
+     * @param   string  $context  The event context, e.g. com_content.article.42
      *
      * @return  object|null
      *
      * @since   1.1.0
      */
-    private function getArticle(): ?object
+    private function getArticle(string $context): ?object
     {
         if ($this->article !== null) {
             return $this->article ?: null;
@@ -351,20 +362,19 @@ final class TechArticle extends CMSPlugin implements SubscriberInterface
 
         $this->article = false;
 
-        $input = $this->getApplication()->getInput();
-
-        if ($input->getCmd('option') !== 'com_content' || $input->getCmd('view') !== 'article') {
+        if (!preg_match('/^com_content\.article\.(\d+)$/', $context, $matches)) {
             return null;
         }
 
-        $id = $input->getInt('id');
+        $id = (int) $matches[1];
 
         if ($id <= 0) {
             return null;
         }
 
+        $state = 1;
         $db    = $this->getDatabase();
-        $query = $db->getQuery(true)
+        $query = $db->createQuery()
             ->select(
                 $db->quoteName(
                     [
@@ -383,7 +393,9 @@ final class TechArticle extends CMSPlugin implements SubscriberInterface
             ->join('LEFT', $db->quoteName('#__categories', 'c'), $db->quoteName('c.id') . ' = ' . $db->quoteName('a.catid'))
             ->join('LEFT', $db->quoteName('#__users', 'u'), $db->quoteName('u.id') . ' = ' . $db->quoteName('a.created_by'))
             ->where($db->quoteName('a.id') . ' = :id')
-            ->bind(':id', $id, ParameterType::INTEGER);
+            ->where($db->quoteName('a.state') . ' = :state')
+            ->bind(':id', $id, ParameterType::INTEGER)
+            ->bind(':state', $state, ParameterType::INTEGER);
 
         $this->article = $db->setQuery($query)->loadObject() ?: false;
 
@@ -453,7 +465,7 @@ final class TechArticle extends CMSPlugin implements SubscriberInterface
      *
      * @since   1.1.0
      */
-    private function isBlank($value): bool
+    private function isBlank(mixed $value): bool
     {
         return $value === null || $value === '' || $value === [] || $value === 0 || $value === '0';
     }
@@ -485,7 +497,7 @@ final class TechArticle extends CMSPlugin implements SubscriberInterface
      *
      * @since   1.0.0
      */
-    private function toList($value): array
+    private function toList(mixed $value): array
     {
         if (!\is_array($value) && !\is_object($value)) {
             return [];

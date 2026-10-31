@@ -25,6 +25,7 @@
 						class="alert alert-info w-100"
 					/>
 
+					<!-- maxlength must match TechArticle::HEADLINE_LENGTH -->
 					<field
 						name="headline"
 						type="text"

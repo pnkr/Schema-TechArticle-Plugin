@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<changelogs>
+	<changelog>
+		<element>plg_schemaorg_techarticle</element>
+		<type>plugin</type>
+		<version>1.2.0</version>
+		<fix>
+			<item>Article text with invalid UTF-8 no longer causes a fatal error when filling empty fields</item>
+			<item>Non-breaking spaces in the article text are now treated as whitespace</item>
+			<item>Empty fields are only filled from published articles</item>
+		</fix>
+		<change>
+			<item>The article is identified from the schema event context instead of the request</item>
+			<item>Uses the Joomla 6 query builder (createQuery) and PHP 8.3 type declarations</item>
+		</change>
+		<addition>
+			<item>Installation is blocked on Joomla older than 6.0 or PHP older than 8.3</item>
+			<item>Changelog shown in Extensions: Manage</item>
+		</addition>
+	</changelog>
+	<changelog>
+		<element>plg_schemaorg_techarticle</element>
+		<type>plugin</type>
+		<version>1.1.0</version>
+		<addition>
+			<item>Fill empty fields from the article</item>
+			<item>Default publisher option</item>
+		</addition>
+	</changelog>
+	<changelog>
+		<element>plg_schemaorg_techarticle</element>
+		<type>plugin</type>
+		<version>1.0.0</version>
+		<note>
+			<item>Initial release</item>
+		</note>
+	</changelog>
+</changelogs>
